@@ -4,6 +4,8 @@ Go製のAIコードレビューSaaS MVPのバックエンドAPIです。
 
 現時点ではOpenAI API、DB、GitHub連携、フロントエンドは実装せず、ダミーのレビュー結果を返します。
 
+設計資料は `docs/` 配下にあります。API仕様は `docs/api-spec.md` を参照してください。
+
 ## 起動方法
 
 ```sh
