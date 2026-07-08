@@ -68,9 +68,13 @@ Content-Type: application/json
 
 | Field | Type | Description |
 | --- | --- | --- |
+| `language` | string | レビュー対象コードの言語 |
+| `review_version` | string | レビュー処理のバージョン |
 | `score` | number | 0〜100の総合スコア |
 | `summary` | string | レビュー全体の短い要約 |
+| `strengths` | array | 良かった点の一覧 |
 | `issues` | array | 問題点一覧 |
+| `suggestions` | array | 次に行う改善案の一覧 |
 | `codex_prompt` | string | Codexへ貼り付けるための修正依頼プロンプト |
 
 ### Review Issue
@@ -80,21 +84,36 @@ Content-Type: application/json
 | `severity` | string | 重要度。現時点では `low` を返す。将来的に `high`, `medium`, `low` を使用する |
 | `title` | string | 指摘事項のタイトル |
 | `description` | string | 指摘事項の説明 |
+| `location` | string | 該当箇所 |
+| `reason` | string | 改善理由 |
 
 ### Response Example
 
 ```json
 {
+  "language": "go",
+  "review_version": "dummy-v1",
   "score": 85,
-  "summary": "全体的にシンプルで読みやすいコードです。",
+  "summary": "全体的にシンプルで読みやすいコードです。現時点では大きな問題はありませんが、出力方法と将来の拡張性に改善余地があります。",
+  "strengths": [
+    "コード量が少なく、処理の流れを追いやすい",
+    "関数の役割が明確で、最小構成として理解しやすい",
+    "不要な複雑さが少なく、改善方針を立てやすい"
+  ],
   "issues": [
     {
       "severity": "low",
       "title": "println の使用",
-      "description": "本格的なアプリケーションでは fmt.Println やログライブラリの使用を検討してください。"
+      "description": "本格的なアプリケーションでは fmt.Println やログライブラリの使用を検討してください。",
+      "location": "コード全体",
+      "reason": "出力方法を標準的なAPIに寄せることで、後からログ出力やテストに置き換えやすくなります。"
     }
   ],
-  "codex_prompt": "以下のレビュー内容をもとに、既存の挙動を変えずにコードを改善してください。"
+  "suggestions": [
+    "fmt.Println または用途に合ったログ出力へ置き換える",
+    "今後処理が増える場合に備えて、入出力処理とビジネスロジックを分ける"
+  ],
+  "codex_prompt": "以下のレビュー結果をもとに、go のコードを改善してください。\n\n目的:\n- 既存の挙動を変えずに、読みやすさ・保守性・実運用時の扱いやすさを改善する\n- レビュー指摘を反映し、必要以上に大きな設計変更は避ける\n\nレビュー指摘:\n- [low] println の使用: 本格的なアプリケーションでは fmt.Println やログライブラリの使用を検討してください。\n  該当箇所: コード全体\n  改善理由: 出力方法を標準的なAPIに寄せることで、後からログ出力やテストに置き換えやすくなります。\n\n改善案:\n- fmt.Println または用途に合ったログ出力へ置き換える\n- 今後処理が増える場合に備えて、入出力処理とビジネスロジックを分ける\n\n作業条件:\n- 既存の動作を維持する\n- 変更理由を簡潔に説明する\n- 可能であれば小さな差分で修正する\n- 不要な依存関係を追加しない\n"
 }
 ```
 
@@ -218,9 +237,9 @@ Response:
 - 改善案
 - Codex用プロンプト
 
-現行MVPのAPIは、総合スコア、要約、問題点一覧、Codex用プロンプトを返します。
+現行MVPのAPIは、総合スコア、要約、良かった点、問題点一覧、改善案、Codex用プロンプトを返します。
 
-良かった点、改善案、問題点の該当箇所、改善理由は、今後のAPI拡張で追加する候補です。
+`strengths` は画面仕様の「良かった点」に対応し、`suggestions` は「改善案」に対応します。`issues.location` は「該当箇所」、`issues.reason` は「改善理由」に対応します。
 
 ## 11. Future Extensions
 
@@ -228,22 +247,12 @@ Response:
 
 ```json
 {
-  "positives": [
-    "関数の役割が分かりやすい"
-  ],
-  "suggestions": [
-    "エラー処理を追加する"
-  ],
-  "issues": [
-    {
-      "severity": "medium",
-      "title": "エラー処理が不足している",
-      "description": "失敗時の処理が不足しています。",
-      "location": "main.go:10",
-      "reason": "エラーを無視すると原因調査が難しくなるためです。"
-    }
-  ]
+  "review_id": "rev_123",
+  "created_at": "2026-07-08T00:00:00Z",
+  "model": "gpt-5",
+  "repository": "owner/repo",
+  "pull_request": 123
 }
 ```
 
-これらは画面仕様に合わせた拡張候補であり、現時点のAPIレスポンスには含めません。
+これらは履歴保存、OpenAI API連携、GitHub連携に合わせた拡張候補であり、現時点のAPIレスポンスには含めません。

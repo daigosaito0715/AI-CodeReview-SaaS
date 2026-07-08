@@ -46,6 +46,8 @@ func (h *ReviewHandler) Review(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	req.Language = strings.TrimSpace(req.Language)
+
 	result, err := h.reviewer.Review(r.Context(), req)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "review_failed", "レビュー処理に失敗しました。")
