@@ -12,14 +12,20 @@ Go製のAIコードレビューSaaS MVPのバックエンドAPIです。
 go run ./cmd/server
 ```
 
-サーバーは `http://localhost:8080` で起動します。
+サーバーはデフォルトで `http://127.0.0.1:8080` で起動します。
+
+待ち受けアドレスを変更したい場合は `SERVER_ADDR` を指定します。
+
+```sh
+SERVER_ADDR=127.0.0.1:8081 go run ./cmd/server
+```
 
 ## API
 
 ### ヘルスチェック
 
 ```sh
-curl http://localhost:8080/health
+curl http://127.0.0.1:8080/health
 ```
 
 レスポンス例:
@@ -33,7 +39,7 @@ curl http://localhost:8080/health
 ### コードレビュー
 
 ```sh
-curl -X POST http://localhost:8080/review \
+curl -X POST http://127.0.0.1:8080/review \
   -H "Content-Type: application/json" \
   -d '{"language":"go","code":"package main\n\nfunc main(){println(\"hello\")}" }'
 ```
